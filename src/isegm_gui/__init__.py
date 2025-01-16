@@ -1,1 +1,1 @@
-from .app import run_interactive_segmentor
+from .app import run_interactive_segmentor, load_model
