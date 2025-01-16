@@ -366,7 +366,7 @@ class InteractiveSegmentationGUI(ttk.Frame):
 
 def load_model(checkpoint_name: typing.Literal["sbd_h18_itermask.pth", "coco_lvis_h18_baseline.pth", "coco_lvis_h18s_itermask.pth", "coco_lvis_h18_itermask.pth" ,"coco_lvis_h32_itermask.pth"], device):
     from isegm.inference import utils
-    return utils.load_is_model(checkpoint_name, device, cpu_dist_maps=True)
+    return utils.load_is_model(checkpoint_name, device, cpu_dist_maps=False)
 
 def run_interactive_segmentor(model, device):
     root = tk.Tk()
