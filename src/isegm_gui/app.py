@@ -364,14 +364,12 @@ class InteractiveSegmentationGUI(ttk.Frame):
 
         return all_checked
 
-def run_interactive_segmentor(checkpoint_name: typing.Literal["sbd_h18_itermask.pth", "coco_lvis_h18_baseline.pth", "coco_lvis_h18s_itermask.pth", "coco_lvis_h18_itermask.pth" ,"coco_lvis_h32_itermask.pth"],
-            device,
-            ):
-    import torch
-    root = tk.Tk()
-    torch.backends.cudnn.deterministic = True
+def load_model(checkpoint_name: typing.Literal["sbd_h18_itermask.pth", "coco_lvis_h18_baseline.pth", "coco_lvis_h18s_itermask.pth", "coco_lvis_h18_itermask.pth" ,"coco_lvis_h32_itermask.pth"], device):
     from isegm.inference import utils
-    model = utils.load_is_model(checkpoint_name, device, cpu_dist_maps=True)
+    return utils.load_is_model(checkpoint_name, device, cpu_dist_maps=True)
+
+def run_interactive_segmentor(model, device):
+    root = tk.Tk()
     app = InteractiveSegmentationGUI(root, model, device)
     root.deiconify()
     return app
