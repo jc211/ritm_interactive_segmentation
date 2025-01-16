@@ -4,7 +4,6 @@ import numpy as np
 
 from albumentations.core.serialization import SERIALIZABLE_REGISTRY
 from albumentations import ImageOnlyTransform, DualTransform
-from albumentations.core.transforms_interface import to_tuple
 from albumentations.augmentations import functional as F
 from isegm.utils.misc import get_bbox_from_mask, expand_bbox, clamp_bbox, get_labels_with_sizes
 
@@ -53,7 +52,7 @@ class ZoomIn(DualTransform):
         super(ZoomIn, self).__init__(always_apply, p)
         self.height = height
         self.width = width
-        self.bbox_jitter = to_tuple(bbox_jitter)
+        self.bbox_jitter = (bbox_jitter,)
         self.expansion_ratio = expansion_ratio
         self.min_crop_size = min_crop_size
         self.min_area = min_area

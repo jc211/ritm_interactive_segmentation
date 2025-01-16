@@ -1,10 +1,11 @@
 from datetime import timedelta
 from pathlib import Path
+import urllib.request
 
 import torch
 import numpy as np
 
-from isegm.data.datasets import GrabCutDataset, BerkeleyDataset, DavisDataset, SBDEvaluationDataset, PascalVocDataset
+# from isegm.data.datasets import GrabCutDataset, BerkeleyDataset, DavisDataset, SBDEvaluationDataset, PascalVocDataset
 from isegm.utils.serialization import load_model
 
 
@@ -18,11 +19,26 @@ def get_time_metrics(all_ious, elapsed_time):
     return mean_spc, mean_spi
 
 
-def load_is_model(checkpoint, device, **kwargs):
-    if isinstance(checkpoint, (str, Path)):
-        state_dict = torch.load(checkpoint, map_location='cpu')
-    else:
-        state_dict = checkpoint
+def load_is_model(
+        checkpoint: str, 
+        device:str, 
+        base_link: str = "https://github.com/saic-vul/ritm_interactive_segmentation/releases/download/v1.0",
+        **kwargs):
+
+    checkpoint_path = Path(f"weights/{checkpoint}")
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if not checkpoint_path.exists():
+        try:
+            print(f"Downloading checkpoint {checkpoint}...")
+            urllib.request.urlretrieve(f"{base_link}/{checkpoint}", checkpoint_path)
+        except Exception as e:
+            print(f"Failed to download the checkpoint {checkpoint} from {base_link}.")
+            print(f"Please download it manually and place it in the 'weights' folder.")
+            print(f"Error: {e}")
+            exit(1)
+
+    state_dict = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
 
     if isinstance(state_dict, list):
         model = load_single_is_model(state_dict[0], device, **kwargs)

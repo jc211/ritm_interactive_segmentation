@@ -5,11 +5,11 @@ import pprint
 from pathlib import Path
 from datetime import datetime
 
-import yaml
+# import yaml
 import torch
 from easydict import EasyDict as edict
 
-from .log import logger, add_logging
+# from .log import logger, add_logging
 from .distributed import synchronize, get_world_size
 
 

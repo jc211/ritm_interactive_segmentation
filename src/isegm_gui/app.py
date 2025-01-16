@@ -1,3 +1,4 @@
+import typing
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 
@@ -5,14 +6,14 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from interactive_demo.canvas import CanvasImage
-from interactive_demo.controller import InteractiveController
-from interactive_demo.wrappers import BoundedNumericalEntry, FocusHorizontalScale, FocusCheckButton, \
+from isegm_gui.canvas import CanvasImage
+from isegm_gui.controller import InteractiveController
+from isegm_gui.wrappers import BoundedNumericalEntry, FocusHorizontalScale, FocusCheckButton, \
     FocusButton, FocusLabelFrame
 
 
-class InteractiveDemoApp(ttk.Frame):
-    def __init__(self, master, args, model):
+class InteractiveSegmentationGUI(ttk.Frame):
+    def __init__(self, master, model, device, callback = None, limit_longest_size=800):
         super().__init__(master)
         self.master = master
         master.title("Reviving Iterative Training with Mask Guidance for Interactive Segmentation")
@@ -24,9 +25,9 @@ class InteractiveDemoApp(ttk.Frame):
         self.pack(fill="both", expand=True)
 
         self.brs_modes = ['NoBRS', 'RGB-BRS', 'DistMap-BRS', 'f-BRS-A', 'f-BRS-B', 'f-BRS-C']
-        self.limit_longest_size = args.limit_longest_size
+        self.limit_longest_size = limit_longest_size
 
-        self.controller = InteractiveController(model, args.device,
+        self.controller = InteractiveController(model, device,
                                                 predictor_params={'brs_mode': 'NoBRS'},
                                                 update_image_callback=self._update_image)
 
@@ -35,7 +36,11 @@ class InteractiveDemoApp(ttk.Frame):
         self._add_canvas()
         self._add_buttons()
 
-        master.bind('<space>', lambda event: self.controller.finish_object())
+        if callback is not None:
+            master.bind('<space>', lambda event: callback())
+        else:
+            master.bind('<space>', lambda event: self.controller.finish_object())
+
         master.bind('a', lambda event: self.controller.partially_finish_object())
 
         self.state['zoomin_params']['skip_clicks'].trace(mode='w', callback=self._reset_predictor)
@@ -44,6 +49,18 @@ class InteractiveDemoApp(ttk.Frame):
         self.state['predictor_params']['net_clicks_limit'].trace(mode='w', callback=self._change_brs_mode)
         self.state['lbfgs_max_iters'].trace(mode='w', callback=self._change_brs_mode)
         self._change_brs_mode()
+    
+    def quit(self):
+        self.master.quit()
+    
+    def get_mask(self):
+        return self.controller.result_mask
+
+    def reset(self):
+        self._reset_predictor()
+    
+    def update_image(self, image: np.ndarray):
+        self.controller.set_image(image)
 
     def _init_state(self):
         self.state = {
@@ -346,3 +363,15 @@ class InteractiveDemoApp(ttk.Frame):
             all_checked = all_checked and widget._check_bounds(widget.get(), '-1')
 
         return all_checked
+
+def run_interactive_segmentor(checkpoint_name: typing.Literal["sbd_h18_itermask.pth", "coco_lvis_h18_baseline.pth", "coco_lvis_h18s_itermask.pth", "coco_lvis_h18_itermask.pth" ,"coco_lvis_h32_itermask.pth"],
+            device,
+            ):
+    import torch
+    root = tk.Tk()
+    torch.backends.cudnn.deterministic = True
+    from isegm.inference import utils
+    model = utils.load_is_model(checkpoint_name, device, cpu_dist_maps=True)
+    app = InteractiveSegmentationGUI(root, model, device)
+    root.deiconify()
+    return app

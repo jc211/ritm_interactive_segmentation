@@ -1,0 +1,1 @@
+from .app import run_interactive_segmentor

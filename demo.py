@@ -3,23 +3,26 @@ import tkinter as tk
 
 import torch
 
-from isegm.utils import exp
 from isegm.inference import utils
-from interactive_demo.app import InteractiveDemoApp
+from isegm_gui.app import InteractiveSegmentationGUI
 
 
 def main():
-    args, cfg = parse_args()
+    args = parse_args()
 
     torch.backends.cudnn.deterministic = True
-    checkpoint_path = utils.find_checkpoint(cfg.INTERACTIVE_MODELS_PATH, args.checkpoint)
-    model = utils.load_is_model(checkpoint_path, args.device, cpu_dist_maps=True)
+    # checkpoint_path = utils.find_checkpoint("weights", args.checkpoint)
+    model = utils.load_is_model(args.checkpoint, args.device, cpu_dist_maps=True)
 
     root = tk.Tk()
     root.minsize(960, 480)
-    app = InteractiveDemoApp(root, args, model)
+    print(args)
+    def callback():
+        print("callback")
+    app = InteractiveSegmentationGUI(root, model, args.device, callback=callback)
     root.deiconify()
     app.mainloop()
+    print(app.controller.result_mask)
 
 
 def parse_args():
@@ -48,9 +51,9 @@ def parse_args():
         args.device =torch.device('cpu')
     else:
         args.device = torch.device(f'cuda:{args.gpu}')
-    cfg = exp.load_config_file(args.cfg, return_edict=True)
+    # cfg = exp.load_config_file(args.cfg, return_edict=True)
 
-    return args, cfg
+    return args
 
 
 if __name__ == '__main__':
