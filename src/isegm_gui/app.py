@@ -40,6 +40,7 @@ class InteractiveSegmentationGUI(ttk.Frame):
             master.bind('<space>', lambda event: callback())
         else:
             master.bind('<space>', lambda event: self.controller.finish_object())
+        master.bind('<Escape>', lambda event: self.quit())
 
         master.bind('a', lambda event: self.controller.partially_finish_object())
 
@@ -370,6 +371,7 @@ def load_model(checkpoint_name: typing.Literal["sbd_h18_itermask.pth", "coco_lvi
 
 def run_interactive_segmentor(model, device):
     root = tk.Tk()
+    root.minsize(960, 480)
     app = InteractiveSegmentationGUI(root, model, device)
     root.deiconify()
     return app

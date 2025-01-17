@@ -22,7 +22,6 @@ def main():
     app = InteractiveSegmentationGUI(root, model, args.device, callback=callback)
     root.deiconify()
     app.mainloop()
-    print(app.controller.result_mask)
 
 
 def parse_args():
